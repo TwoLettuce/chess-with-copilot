@@ -182,7 +182,7 @@ public class ChessGame {
             return true;
         }
 
-        simulatedBoard.addPiece(start, null);
+        simulatedBoard.addPiece(start,null);
         simulatedBoard.addPiece(end, createPieceForMove(movingPiece, move));
         return isInCheckOnBoard(simulatedBoard, teamColor);
     }
