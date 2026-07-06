@@ -55,97 +55,126 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         List<ChessMove> moves = new ArrayList<>();
-
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
 
         switch (pieceType) {
-            case KING -> {
-                for (int dr = -1; dr <= 1; dr++) {
-                    for (int dc = -1; dc <= 1; dc++) {
-                        if (dr == 0 && dc == 0) continue;
-                        int r = row + dr;
-                        int c = col + dc;
-                        if (r < 1 || r > 8 || c < 1 || c > 8) continue;
-                        ChessPiece occupant = board.getPiece(new ChessPosition(r, c));
-                        if (occupant == null || occupant.getTeamColor() != this.teamColor) {
-                            moves.add(new ChessMove(myPosition, new ChessPosition(r, c), null));
-                        }
-                    }
-                }
-            }
-            case KNIGHT -> {
-                int[][] deltas = {{2,1},{1,2},{-1,2},{-2,1},{-2,-1},{-1,-2},{1,-2},{2,-1}};
-                for (var d : deltas) {
-                    int r = row + d[0];
-                    int c = col + d[1];
-                    if (r < 1 || r > 8 || c < 1 || c > 8) continue;
-                    ChessPiece occupant = board.getPiece(new ChessPosition(r, c));
-                    if (occupant == null || occupant.getTeamColor() != this.teamColor) {
-                        moves.add(new ChessMove(myPosition, new ChessPosition(r, c), null));
-                    }
-                }
-            }
-            case ROOK -> {
-                int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};
-                for (var d : dirs) traverseDirection(board, myPosition, d[0], d[1], moves);
-            }
-            case BISHOP -> {
-                int[][] dirs = {{1,1},{1,-1},{-1,1},{-1,-1}};
-                for (var d : dirs) traverseDirection(board, myPosition, d[0], d[1], moves);
-            }
-            case QUEEN -> {
-                int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1},{1,1},{1,-1},{-1,1},{-1,-1}};
-                for (var d : dirs) traverseDirection(board, myPosition, d[0], d[1], moves);
-            }
-            case PAWN -> {
-                int dir = (this.teamColor == ChessGame.TeamColor.WHITE) ? 1 : -1;
-                int forwardRow = row + dir;
-
-                // single forward
-                if (forwardRow >= 1 && forwardRow <= 8) {
-                    ChessPosition forwardPos = new ChessPosition(forwardRow, col);
-                    if (board.getPiece(forwardPos) == null) {
-                        if (forwardRow == 1 || forwardRow == 8) {
-                            addPromotions(moves, myPosition, forwardPos);
-                        } else {
-                            moves.add(new ChessMove(myPosition, forwardPos, null));
-                        }
-                    }
-                }
-
-                // double forward from starting row
-                if ((this.teamColor == ChessGame.TeamColor.WHITE && row == 2) || (this.teamColor == ChessGame.TeamColor.BLACK && row == 7)) {
-                    int twoRow = row + 2*dir;
-                    if (twoRow >= 1 && twoRow <= 8) {
-                        ChessPosition mid = new ChessPosition(row + dir, col);
-                        ChessPosition dest = new ChessPosition(twoRow, col);
-                        if (board.getPiece(mid) == null && board.getPiece(dest) == null) {
-                            moves.add(new ChessMove(myPosition, dest, null));
-                        }
-                    }
-                }
-
-                // captures
-                int[] dc = {-1, 1};
-                for (int dcol : dc) {
-                    int c = col + dcol;
-                    int r = row + dir;
-                    if (r < 1 || r > 8 || c < 1 || c > 8) continue;
-                    ChessPosition target = new ChessPosition(r, c);
-                    ChessPiece occ = board.getPiece(target);
-                    if (occ != null && occ.getTeamColor() != this.teamColor) {
-                        if (r == 1 || r == 8) {
-                            addPromotions(moves, myPosition, target);
-                        } else {
-                            moves.add(new ChessMove(myPosition, target, null));
-                        }
-                    }
-                }
-            }
+            case KING -> addKingMoves(board, myPosition, row, col, moves);
+            case KNIGHT -> addKnightMoves(board, myPosition, row, col, moves);
+            case ROOK -> addDirectionalMoves(board, myPosition, moves, new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}});
+            case BISHOP -> addDirectionalMoves(board, myPosition, moves, new int[][]{{1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
+            case QUEEN -> addDirectionalMoves(board, myPosition, moves, new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
+            case PAWN -> addPawnMoves(board, myPosition, row, col, moves);
         }
 
         return moves;
+    }
+
+    private void addKingMoves(ChessBoard board, ChessPosition myPosition, int row, int col, List<ChessMove> moves) {
+        for (int dr = -1; dr <= 1; dr++) {
+            for (int dc = -1; dc <= 1; dc++) {
+                if (dr == 0 && dc == 0) {
+                    continue;
+                }
+                int r = row + dr;
+                int c = col + dc;
+                if (!isOnBoard(r, c)) {
+                    continue;
+                }
+                ChessPosition target = new ChessPosition(r, c);
+                ChessPiece occupant = board.getPiece(target);
+                if (occupant == null || occupant.getTeamColor() != this.teamColor) {
+                    moves.add(new ChessMove(myPosition, target, null));
+                }
+            }
+        }
+    }
+
+    private void addKnightMoves(ChessBoard board, ChessPosition myPosition, int row, int col, List<ChessMove> moves) {
+        int[][] deltas = {{2, 1}, {1, 2}, {-1, 2}, {-2, 1}, {-2, -1}, {-1, -2}, {1, -2}, {2, -1}};
+        for (var d : deltas) {
+            int r = row + d[0];
+            int c = col + d[1];
+            if (!isOnBoard(r, c)) {
+                continue;
+            }
+            ChessPosition target = new ChessPosition(r, c);
+            ChessPiece occupant = board.getPiece(target);
+            if (occupant == null || occupant.getTeamColor() != this.teamColor) {
+                moves.add(new ChessMove(myPosition, target, null));
+            }
+        }
+    }
+
+    private void addDirectionalMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves, int[][] dirs) {
+        for (var d : dirs) {
+            traverseDirection(board, myPosition, d[0], d[1], moves);
+        }
+    }
+
+    private void addPawnMoves(ChessBoard board, ChessPosition myPosition, int row, int col, List<ChessMove> moves) {
+        int dir = (this.teamColor == ChessGame.TeamColor.WHITE) ? 1 : -1;
+        int forwardRow = row + dir;
+
+        addSingleForwardMove(board, myPosition, col, forwardRow, moves);
+        addDoubleForwardMove(board, myPosition, row, col, dir, moves);
+        addPawnCaptures(board, myPosition, row, col, dir, moves);
+    }
+
+    private void addSingleForwardMove(ChessBoard board, ChessPosition myPosition, int col, int forwardRow, List<ChessMove> moves) {
+        if (!isOnBoard(forwardRow, col)) {
+            return;
+        }
+        ChessPosition forwardPos = new ChessPosition(forwardRow, col);
+        if (board.getPiece(forwardPos) != null) {
+            return;
+        }
+        if (forwardRow == 1 || forwardRow == 8) {
+            addPromotions(moves, myPosition, forwardPos);
+        } else {
+            moves.add(new ChessMove(myPosition, forwardPos, null));
+        }
+    }
+
+    private void addDoubleForwardMove(ChessBoard board, ChessPosition myPosition, int row, int col, int dir, List<ChessMove> moves) {
+        if (!((this.teamColor == ChessGame.TeamColor.WHITE && row == 2)
+                || (this.teamColor == ChessGame.TeamColor.BLACK && row == 7))) {
+            return;
+        }
+        int twoRow = row + 2 * dir;
+        if (!isOnBoard(twoRow, col)) {
+            return;
+        }
+        ChessPosition mid = new ChessPosition(row + dir, col);
+        ChessPosition dest = new ChessPosition(twoRow, col);
+        if (board.getPiece(mid) == null && board.getPiece(dest) == null) {
+            moves.add(new ChessMove(myPosition, dest, null));
+        }
+    }
+
+    private void addPawnCaptures(ChessBoard board, ChessPosition myPosition, int row, int col, int dir, List<ChessMove> moves) {
+        int[] dc = {-1, 1};
+        for (int dcol : dc) {
+            int c = col + dcol;
+            int r = row + dir;
+            if (!isOnBoard(r, c)) {
+                continue;
+            }
+            ChessPosition target = new ChessPosition(r, c);
+            ChessPiece occ = board.getPiece(target);
+            if (occ == null || occ.getTeamColor() == this.teamColor) {
+                continue;
+            }
+            if (r == 1 || r == 8) {
+                addPromotions(moves, myPosition, target);
+            } else {
+                moves.add(new ChessMove(myPosition, target, null));
+            }
+        }
+    }
+
+    private boolean isOnBoard(int row, int col) {
+        return row >= 1 && row <= 8 && col >= 1 && col <= 8;
     }
 
     private void traverseDirection(ChessBoard board, ChessPosition myPosition, int dr, int dc, List<ChessMove> moves) {
@@ -176,12 +205,18 @@ public class ChessPiece {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         ChessPiece that = (ChessPiece) o;
 
-        if (teamColor != that.teamColor) return false;
+        if (teamColor != that.teamColor) {
+            return false;
+        }
         return pieceType == that.pieceType;
     }
 

@@ -44,13 +44,21 @@ public class ChessMove {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         ChessMove chessMove = (ChessMove) o;
 
-        if (!startPosition.equals(chessMove.startPosition)) return false;
-        if (!endPosition.equals(chessMove.endPosition)) return false;
+        if (!startPosition.equals(chessMove.startPosition)) {
+            return false;
+        }
+        if (!endPosition.equals(chessMove.endPosition)) {
+            return false;
+        }
         return promotionPiece == chessMove.promotionPiece;
     }
 
@@ -64,6 +72,7 @@ public class ChessMove {
 
     @Override
     public String toString() {
-        return "Move{" + startPosition + "->" + endPosition + (promotionPiece != null ? ",prom=" + promotionPiece : "") + "}";
+        return "Move{" + startPosition + "->" + endPosition
+                + (promotionPiece != null ? ",prom=" + promotionPiece : "") + "}";
     }
 }

@@ -39,14 +39,8 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        // Clear
-        for (int r = 0; r < 8; r++) {
-            for (int c = 0; c < 8; c++) {
-                board[r][c] = null;
-            }
-        }
+        clearBoard();
 
-        // Black back row (row 8)
         ChessPiece.PieceType[] back = {
                 ChessPiece.PieceType.ROOK, ChessPiece.PieceType.KNIGHT,
                 ChessPiece.PieceType.BISHOP, ChessPiece.PieceType.QUEEN,
@@ -55,17 +49,25 @@ public class ChessBoard {
         };
 
         for (int col = 1; col <= 8; col++) {
-            addPiece(new ChessPosition(8, col), new ChessPiece(ChessGame.TeamColor.BLACK, back[col - 1]));
-            addPiece(new ChessPosition(7, col), new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
-            addPiece(new ChessPosition(2, col), new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN));
-            addPiece(new ChessPosition(1, col), new ChessPiece(ChessGame.TeamColor.WHITE, back[col - 1]));
+            addPiece(new ChessPosition(8, col),
+                    new ChessPiece(ChessGame.TeamColor.BLACK, back[col - 1]));
+            addPiece(new ChessPosition(7, col),
+                    new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
+            addPiece(new ChessPosition(2, col),
+                    new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN));
+            addPiece(new ChessPosition(1, col),
+                    new ChessPiece(ChessGame.TeamColor.WHITE, back[col - 1]));
         }
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         ChessBoard that = (ChessBoard) o;
 
@@ -73,9 +75,15 @@ public class ChessBoard {
             for (int c = 1; c <= 8; c++) {
                 ChessPiece a = this.getPiece(new ChessPosition(r, c));
                 ChessPiece b = that.getPiece(new ChessPosition(r, c));
-                if (a == null && b == null) continue;
-                if (a == null || b == null) return false;
-                if (!a.equals(b)) return false;
+                if (a == null && b == null) {
+                    continue;
+                }
+                if (a == null || b == null) {
+                    return false;
+                }
+                if (!a.equals(b)) {
+                    return false;
+                }
             }
         }
         return true;
@@ -91,5 +99,13 @@ public class ChessBoard {
             }
         }
         return result;
+    }
+
+    private void clearBoard() {
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
+                board[r][c] = null;
+            }
+        }
     }
 }
