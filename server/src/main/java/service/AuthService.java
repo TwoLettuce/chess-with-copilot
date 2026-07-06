@@ -15,20 +15,15 @@ public class AuthService {
     }
 
     public AuthData register(UserData user) throws DataAccessException {
-        if (user == null || user.username() == null || user.password() == null || user.email() == null
-                || user.username().isBlank() || user.password().isBlank() || user.email().isBlank()) {
+        if (hasMissingRegistrationFields(user)) {
             throw new DataAccessException("bad request");
         }
         dataAccess.createUser(user);
-        String token = UUID.randomUUID().toString();
-        AuthData auth = new AuthData(token, user.username());
-        dataAccess.createAuth(auth);
-        return auth;
+        return createAuth(user.username());
     }
 
     public AuthData login(UserData user) throws DataAccessException {
-        if (user == null || user.username() == null || user.password() == null
-                || user.username().isBlank() || user.password().isBlank()) {
+        if (hasMissingLoginFields(user)) {
             throw new DataAccessException("bad request");
         }
         UserData storedUser;
@@ -40,10 +35,7 @@ public class AuthService {
         if (!user.password().equals(storedUser.password())) {
             throw new DataAccessException("unauthorized");
         }
-        String token = UUID.randomUUID().toString();
-        AuthData auth = new AuthData(token, user.username());
-        dataAccess.createAuth(auth);
-        return auth;
+        return createAuth(user.username());
     }
 
     public void logout(String authToken) throws DataAccessException {
@@ -52,5 +44,22 @@ public class AuthService {
 
     public void clear() throws DataAccessException {
         dataAccess.clear();
+    }
+
+    private boolean hasMissingRegistrationFields(UserData user) {
+        return user == null || user.username() == null || user.password() == null || user.email() == null
+                || user.username().isBlank() || user.password().isBlank() || user.email().isBlank();
+    }
+
+    private boolean hasMissingLoginFields(UserData user) {
+        return user == null || user.username() == null || user.password() == null
+                || user.username().isBlank() || user.password().isBlank();
+    }
+
+    private AuthData createAuth(String username) throws DataAccessException {
+        String token = UUID.randomUUID().toString();
+        AuthData auth = new AuthData(token, username);
+        dataAccess.createAuth(auth);
+        return auth;
     }
 }
