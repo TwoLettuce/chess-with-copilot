@@ -3,8 +3,9 @@ package server;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
-import dataaccess.MemoryDataAccess;
+import dataaccess.MySqlDataAccess;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
@@ -26,7 +27,7 @@ public class Server {
     private final GameService gameService;
 
     public Server() {
-        MemoryDataAccess dataAccess = new MemoryDataAccess();
+        DataAccess dataAccess = new MySqlDataAccess();
         authService = new AuthService(dataAccess);
         gameService = new GameService(dataAccess);
 
@@ -171,6 +172,13 @@ public class Server {
             sendError(ctx, HttpStatus.UNAUTHORIZED, "Error: unauthorized");
         } else if ("already taken".equals(message)) {
             sendError(ctx, HttpStatus.FORBIDDEN, "Error: already taken");
+        } else if ("failed to get connection".equals(message) || "failed to create database".equals(message)
+                || "failed to clear database".equals(message) || "failed to create user".equals(message)
+                || "failed to get user".equals(message) || "failed to create auth".equals(message)
+                || "failed to get auth".equals(message) || "failed to delete auth".equals(message)
+                || "failed to create game".equals(message) || "failed to get game".equals(message)
+                || "failed to list games".equals(message) || "failed to update game".equals(message)) {
+            sendError(ctx, HttpStatus.INTERNAL_SERVER_ERROR, "Error: " + message);
         } else {
             sendError(ctx, HttpStatus.INTERNAL_SERVER_ERROR, "Error: " + message);
         }

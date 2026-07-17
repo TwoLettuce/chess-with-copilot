@@ -20,7 +20,7 @@ public class DatabaseManager {
      * Creates the database if it does not already exist.
      */
     static public void createDatabase() throws DataAccessException {
-        var statement = "CREATE DATABASE IF NOT EXISTS " + databaseName;
+        var statement = "CREATE DATABASE IF NOT EXISTS " + quoteIdentifier(databaseName);
         try (var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
              var preparedStatement = conn.prepareStatement(statement)) {
             preparedStatement.executeUpdate();
@@ -73,5 +73,9 @@ public class DatabaseManager {
         var host = props.getProperty("db.host");
         var port = Integer.parseInt(props.getProperty("db.port"));
         connectionUrl = String.format("jdbc:mysql://%s:%d", host, port);
+    }
+
+    private static String quoteIdentifier(String identifier) {
+        return "`" + identifier + "`";
     }
 }

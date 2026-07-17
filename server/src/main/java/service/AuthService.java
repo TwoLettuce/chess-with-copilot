@@ -4,6 +4,7 @@ import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import model.AuthData;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.UUID;
 
@@ -30,9 +31,21 @@ public class AuthService {
         try {
             storedUser = dataAccess.getUser(user.username());
         } catch (DataAccessException e) {
-            throw new DataAccessException("unauthorized");
+            if ("user not found".equals(e.getMessage())) {
+                throw new DataAccessException("unauthorized");
+            }
+            throw e;
         }
-        if (!user.password().equals(storedUser.password())) {
+        String storedPassword = storedUser.password();
+        boolean passwordMatches = storedPassword != null && storedPassword.equals(user.password());
+        if (!passwordMatches) {
+            try {
+                passwordMatches = BCrypt.checkpw(user.password(), storedPassword);
+            } catch (IllegalArgumentException e) {
+                passwordMatches = false;
+            }
+        }
+        if (!passwordMatches) {
             throw new DataAccessException("unauthorized");
         }
         return createAuth(user.username());
