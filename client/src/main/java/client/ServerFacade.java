@@ -26,6 +26,10 @@ public class ServerFacade {
         this.baseUrl = "http://localhost:" + port;
     }
 
+    public URI getWebSocketUri() {
+        return URI.create(baseUrl.replaceFirst("^http", "ws") + "/ws");
+    }
+
     public AuthData register(String username, String password, String email) throws ServerFacadeException {
         Map<String, Object> body = new HashMap<>();
         body.put("username", username);

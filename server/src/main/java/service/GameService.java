@@ -44,6 +44,14 @@ public class GameService {
         dataAccess.clear();
     }
 
+    public GameData getGame(int gameID) throws DataAccessException {
+        return dataAccess.getGame(gameID);
+    }
+
+    public void updateGame(GameData game) throws DataAccessException {
+        dataAccess.updateGame(game);
+    }
+
     private void requireAuth(String authToken) throws DataAccessException {
         dataAccess.getAuth(authToken);
     }

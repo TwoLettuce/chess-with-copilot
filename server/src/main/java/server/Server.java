@@ -14,6 +14,8 @@ import model.GameData;
 import model.UserData;
 import service.AuthService;
 import service.GameService;
+import server.websocket.ConnectionManager;
+import server.websocket.WebSocketController;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,11 +27,13 @@ public class Server {
     private final Gson gson = new Gson();
     private final AuthService authService;
     private final GameService gameService;
+    private final WebSocketController webSocketController;
 
     public Server() {
         DataAccess dataAccess = new MySqlDataAccess();
         authService = new AuthService(dataAccess);
         gameService = new GameService(dataAccess);
+        webSocketController = new WebSocketController(authService, gameService, new ConnectionManager());
 
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
@@ -40,6 +44,12 @@ public class Server {
         javalin.get("/game", this::listGames);
         javalin.post("/game", this::createGame);
         javalin.put("/game", this::joinGame);
+        javalin.ws("/ws", ws -> {
+            ws.onConnect(webSocketController::onConnect);
+            ws.onMessage(webSocketController::onMessage);
+            ws.onClose(webSocketController::onClose);
+            ws.onError(webSocketController::onError);
+        });
 
         javalin.exception(DataAccessException.class, this::handleDataAccessException);
     }

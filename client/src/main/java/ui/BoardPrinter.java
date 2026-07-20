@@ -4,12 +4,19 @@ import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
 
+import java.util.Collection;
+import java.util.Set;
+
 public class BoardPrinter {
     private static final String LIGHT_SQUARE = EscapeSequences.SET_BG_COLOR_WHITE;
     private static final String DARK_SQUARE = EscapeSequences.SET_BG_COLOR_DARK_GREEN;
     private static final String RESET = EscapeSequences.RESET_BG_COLOR + EscapeSequences.RESET_TEXT_COLOR;
 
     public String render(ChessGame game, ChessGame.TeamColor perspective) {
+        return render(game, perspective, Set.of());
+    }
+
+    public String render(ChessGame game, ChessGame.TeamColor perspective, Collection<ChessPosition> highlights) {
         StringBuilder out = new StringBuilder();
         int[] rows = perspective == ChessGame.TeamColor.BLACK ? ascending() : descending();
         int[] columns = perspective == ChessGame.TeamColor.BLACK ? descending() : ascending();
@@ -21,7 +28,7 @@ public class BoardPrinter {
         for (int row : rows) {
             out.append(' ').append(row).append(' ');
             for (int column : columns) {
-                appendSquare(out, game, row, column);
+                appendSquare(out, game, row, column, highlights);
             }
             out.append(' ').append(row).append(System.lineSeparator());
         }
@@ -32,9 +39,10 @@ public class BoardPrinter {
         return out.toString();
     }
 
-    private void appendSquare(StringBuilder out, ChessGame game, int row, int column) {
+    private void appendSquare(StringBuilder out, ChessGame game, int row, int column, Collection<ChessPosition> highlights) {
         boolean lightSquare = (row + column) % 2 == 1;
-        out.append(lightSquare ? LIGHT_SQUARE : DARK_SQUARE);
+        boolean highlighted = highlights != null && highlights.contains(new ChessPosition(row, column));
+        out.append(highlighted ? EscapeSequences.SET_BG_COLOR_YELLOW : (lightSquare ? LIGHT_SQUARE : DARK_SQUARE));
         out.append(pieceSymbol(game.getBoard().getPiece(new ChessPosition(row, column))));
         out.append(RESET);
     }

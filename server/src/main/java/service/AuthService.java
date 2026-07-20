@@ -59,6 +59,10 @@ public class AuthService {
         dataAccess.clear();
     }
 
+    public AuthData getAuth(String authToken) throws DataAccessException {
+        return dataAccess.getAuth(authToken);
+    }
+
     private boolean hasMissingRegistrationFields(UserData user) {
         return user == null || user.username() == null || user.password() == null || user.email() == null
                 || user.username().isBlank() || user.password().isBlank() || user.email().isBlank();
