@@ -189,8 +189,7 @@ public class ChessClient {
         currentGameOver = false;
         try {
             webSocketClient = new GameWebSocketClient(gameListener);
-            webSocketClient.connect(serverFacade.getWebSocketUri());
-            webSocketClient.send(new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, game.gameID()));
+            webSocketClient.connect(serverFacade.getWebSocketUri(), new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, game.gameID()));
             System.out.println((observer ? "Observing '" : "Joined '") + game.gameName() + (observer ? "'." : "' as " + perspective.name().toLowerCase() + "."));
             runGameplayLoop();
         } catch (Exception e) {
@@ -209,6 +208,10 @@ public class ChessClient {
         boolean playing = true;
         while (playing) {
             try {
+                if (webSocketClient == null || !webSocketClient.isConnected()) {
+                    System.out.println("You are no longer connected to the game.");
+                    return;
+                }
                 printGameplayPrompt();
                 String command = scanner.nextLine().trim().toLowerCase();
                 if (command.isEmpty()) {
@@ -227,11 +230,13 @@ public class ChessClient {
         switch (command) {
             case "help" -> printGameplayHelp();
             case "redraw" -> redrawBoard();
-            case "leave" -> leaveGame();
+            case "leave" -> {
+                leaveGame();
+                return false;
+            }
             case "make move" -> makeMove();
             case "resign" -> resign();
             case "highlight" -> highlightLegalMoves();
-            case "quit" -> { return false; }
             default -> System.out.println("Unknown command. Type help to see available commands.");
         }
         return true;
@@ -247,7 +252,6 @@ public class ChessClient {
 
     private void leaveGame() throws ServerFacadeException {
         sendGameplayCommand(UserGameCommand.CommandType.LEAVE, null);
-        closeGameSession();
     }
 
     private void makeMove() throws ServerFacadeException {
@@ -287,7 +291,7 @@ public class ChessClient {
             System.out.println("No board is currently loaded.");
             return;
         }
-        ChessPosition start = promptForPosition("Piece row: ", "Piece column: ");
+        ChessPosition start = promptForSquare("Piece square (for example, e2): ");
         if (start == null) {
             return;
         }
@@ -304,11 +308,11 @@ public class ChessClient {
     }
 
     private ChessMove promptForMove() {
-        ChessPosition start = promptForPosition("Start row: ", "Start column: ");
+        ChessPosition start = promptForSquare("Start square (for example, e2): ");
         if (start == null) {
             return null;
         }
-        ChessPosition end = promptForPosition("End row: ", "End column: ");
+        ChessPosition end = promptForSquare("End square (for example, e4): ");
         if (end == null) {
             return null;
         }
@@ -334,34 +338,29 @@ public class ChessClient {
         return new ChessMove(start, end, promotion);
     }
 
-    private ChessPosition promptForPosition(String rowPrompt, String columnPrompt) {
-        Integer row = promptForInteger(rowPrompt);
-        if (row == null) {
+    private ChessPosition promptForSquare(String prompt) {
+        String input = prompt(prompt).trim().toLowerCase();
+        if (input.length() != 2) {
+            System.out.println("Please enter a square in algebraic notation like e4.");
             return null;
         }
-        Integer column = promptForInteger(columnPrompt);
-        if (column == null) {
+        char file = input.charAt(0);
+        char rank = input.charAt(1);
+        if (file < 'a' || file > 'h' || rank < '1' || rank > '8') {
+            System.out.println("Please enter a square in algebraic notation like e4.");
             return null;
         }
-        if (row < 1 || row > 8 || column < 1 || column > 8) {
-            System.out.println("Rows and columns must be between 1 and 8.");
-            return null;
-        }
+        int column = file - 'a' + 1;
+        int row = Character.getNumericValue(rank);
         return new ChessPosition(row, column);
-    }
-
-    private Integer promptForInteger(String prompt) {
-        String input = prompt(prompt);
-        try {
-            return Integer.parseInt(input);
-        } catch (NumberFormatException e) {
-            System.out.println("Please enter a valid number.");
-            return null;
-        }
     }
 
     private void sendGameplayCommand(UserGameCommand.CommandType type, ChessMove move) throws ServerFacadeException {
         try {
+            if (webSocketClient == null || !webSocketClient.isConnected()) {
+                closeGameSession();
+                throw new ServerFacadeException(500, "You are no longer connected to the game.");
+            }
             UserGameCommand command = move == null
                     ? new UserGameCommand(type, authToken, currentGameId)
                     : new UserGameCommand(type, authToken, currentGameId, move);
@@ -399,7 +398,7 @@ public class ChessClient {
     }
 
     private void printGameplayHelp() {
-        System.out.println("Commands: help, redraw, leave, make move, resign, highlight, quit");
+        System.out.println("Commands: help, redraw, leave, make move, resign, highlight");
     }
 
     private void printGameplayPrompt() {
