@@ -61,9 +61,12 @@ public class ChessPiece {
         switch (pieceType) {
             case KING -> addKingMoves(board, myPosition, row, col, moves);
             case KNIGHT -> addKnightMoves(board, myPosition, row, col, moves);
-            case ROOK -> addDirectionalMoves(board, myPosition, moves, new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}});
-            case BISHOP -> addDirectionalMoves(board, myPosition, moves, new int[][]{{1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
-            case QUEEN -> addDirectionalMoves(board, myPosition, moves, new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
+                case ROOK -> addDirectionalMoves(board, myPosition, moves,
+                    new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}});
+                case BISHOP -> addDirectionalMoves(board, myPosition, moves,
+                    new int[][]{{1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
+                case QUEEN -> addDirectionalMoves(board, myPosition, moves,
+                    new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
             case PAWN -> addPawnMoves(board, myPosition, row, col, moves);
         }
 

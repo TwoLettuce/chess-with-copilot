@@ -189,8 +189,10 @@ public class ChessClient {
         currentGameOver = false;
         try {
             webSocketClient = new GameWebSocketClient(gameListener);
-            webSocketClient.connect(serverFacade.getWebSocketUri(), new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, game.gameID()));
-            System.out.println((observer ? "Observing '" : "Joined '") + game.gameName() + (observer ? "'." : "' as " + perspective.name().toLowerCase() + "."));
+            webSocketClient.connect(serverFacade.getWebSocketUri(),
+                    new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, game.gameID()));
+            System.out.println((observer ? "Observing '" : "Joined '") + game.gameName()
+                    + (observer ? "'." : "' as " + perspective.name().toLowerCase() + "."));
             runGameplayLoop();
         } catch (Exception e) {
             throw new ServerFacadeException(500, e.getMessage() == null ? "Failed to connect to websocket." : e.getMessage());
