@@ -1,6 +1,10 @@
 # ♕ BYU CS 240 Chess
 
-This project demonstrates mastery of proper software design, client/server architecture, networking using HTTP and WebSocket, database persistence, unit testing, serialization, and security.
+This project was used as a testing grounds for determining the effectiveness of Copilot-driven software development. No code was written or modified by the user, with the exception of a test file that was not copied properly by the AI, and the shortening of some Console UI commands. Phases 0, 3, and 4 passed without any struggles. Copilot was unable to do the Extra Credit for phase 1 - or at least I ran out of credits because of how much it was iterating over itself. The rest of phase 1 was relatively simple for it. The chess board's square colors were initially flipped in phase 5, but this was resolved easily by the agent. Copilot struggled with phase 6, requiring a lot of guidance to resolve idle disconnects on websocket connections. The session for phase 6 cost 141 credits, while phase 5 cost only 60. 
+
+The plan I had access to when doing this expirement was Github Copilot Student. It allotted a 200-credit limit per month, and often routed to the GPT 5.3 Codex model.
+
+I did not use an AGENTS.md file, all instruction was given in the message context.
 
 ## 10k Architecture Overview
 
